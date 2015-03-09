@@ -31,6 +31,11 @@ Using it should work as well
 def my_random():
     print int(random.random() * 100)
 ```
+Some more random stuff should be printed out
+```Python
+print int(random.random() * 1000)
+print int(random.random() * 10000)
+```
 ## Goals
 The goal is to have a markdown file and a python file that runs in the end.
 ```Python

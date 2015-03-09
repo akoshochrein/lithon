@@ -34,6 +34,13 @@ import random
 
 def my_random():
     print int(random.random() * 100)
+    {{ print some more random }}
+
+#& Some more random stuff should be printed out
+
+{{ print some more random }} +=
+print int(random.random() * 1000)
+print int(random.random() * 10000)
 
 #& ## Goals
 #& The goal is to have a markdown file and a python file that runs in the end.

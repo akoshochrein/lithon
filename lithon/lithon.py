@@ -14,6 +14,25 @@ VARIABLE_EXPAND_RE = re.compile(r'^{{(.+)}} \+\=$')
 RANDOM_SIZE = 1000000
 
 
+class PythonLine(object):
+
+    def __init__(self, text):
+        self.text = text
+
+    def write(self):
+        return self.text
+
+
+class PythonVariable(PythonLine):
+
+    def __init__(self, text, indent):
+        super(PythonVariable, self).__init__(text)
+        self.indent = indent
+    
+    def append(self, line):
+        self.text += ' '*self.indent + line
+
+
 def main():
     args = sys.argv
     if len(args) < 2:
@@ -29,7 +48,7 @@ def process_file(filename):
     with open(filename, 'r') as f:
         python_section = False
         for line in f.readlines():
-            match_var = VARIABLE_RE.match(line)
+            match_var = VARIABLE_RE.match(line.lstrip())
             match_exp_var = VARIABLE_EXPAND_RE.match(line)
 
             # add a random seed to the lines so they will not collide on hashing
@@ -38,7 +57,8 @@ def process_file(filename):
             if match_var:
                 # register the variable in the python lines
                 key = match_var.group(1)
-                python_lines[key] = ''
+                indent = count_indent(line)
+                python_lines[key] = PythonVariable('', indent)
             elif match_exp_var:
                 # Expand is caught, we shall read the input until a new markdown is started
                 variable_insert = True
@@ -47,9 +67,9 @@ def process_file(filename):
 
                 # Python part
                 if variable_insert:
-                    python_lines[variable] += line
+                    python_lines[variable].append(line)
                 else:
-                    python_lines[key] = line
+                    python_lines[key] = PythonLine(line)
 
                 # Markdown part
                 if not python_section:
@@ -70,6 +90,10 @@ def process_file(filename):
             markdown_lines[key] = '```\n'
 
 
+def count_indent(line):
+    return len(line) - len(line.lstrip())
+
+
 def write_python_file(filename):
 
     def generate_python_filename(filename):
@@ -77,7 +101,7 @@ def write_python_file(filename):
 
     with open(generate_python_filename(filename), 'w') as f:
         for line in python_lines.keys():
-            f.write(python_lines[line])
+            f.write(python_lines[line].write())
 
     print 'python file generated'
 
